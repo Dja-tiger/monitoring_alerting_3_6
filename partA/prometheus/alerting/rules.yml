@@ -1,0 +1,30 @@
+groups:
+  - name: red-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{app="chat-demo",code!~"2.."}[5m])
+          / rate(http_requests_total{app="chat-demo"}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "{{ $labels.app }} error ratio above 5% ({{ $value | printf "%.2f" }})"
+
+      - alert: HighLatencyP95
+        expr: histogram_quantile(0.95, sum(rate(request_duration_seconds_bucket{app="chat-demo"}[5m])) by (le)) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P95 latency above 0.5s"
+          description: "{{ $labels.app }} latency p95 is {{ $value | printf "%.3f" }}s"
+
+      - alert: DemoTargetDown
+        expr: up{job="demo-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Demo app target down"
+          description: "Prometheus cannot scrape the demo app endpoint"
