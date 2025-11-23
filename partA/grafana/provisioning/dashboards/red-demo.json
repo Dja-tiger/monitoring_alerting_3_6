@@ -1,0 +1,105 @@
+{
+  "id": null,
+  "title": "RED Demo App",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Requests per second",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{app=\"chat-demo\"}[1m])",
+          "legendFormat": "{{method}} {{path}}"
+        }
+      ],
+      "id": 1,
+      "datasource": "Prometheus",
+      "lines": true,
+      "linewidth": 2,
+      "fill": 1,
+      "yaxes": [
+        { "label": "req/s", "format": "req/s" },
+        { "format": "short" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Error rate %",
+      "targets": [
+        {
+          "expr": "100 * rate(http_requests_total{app=\"chat-demo\",code!~\"2..\"}[5m]) / rate(http_requests_total{app=\"chat-demo\"}[5m])"
+        }
+      ],
+      "id": 2,
+      "datasource": "Prometheus",
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false },
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Latency p95",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(request_duration_seconds_bucket{app=\"chat-demo\"}[5m])) by (le))"
+        }
+      ],
+      "id": 3,
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.5 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "values": false }
+      }
+    },
+    {
+      "type": "table",
+      "title": "Targets up",
+      "id": 4,
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up"
+        }
+      ],
+      "options": {
+        "showHeader": true
+      },
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": { "valueLabel": "Value" }
+        }
+      ]
+    }
+  ]
+}

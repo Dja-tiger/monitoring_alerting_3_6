@@ -1,0 +1,11 @@
+route:
+  receiver: webhook-echo
+  repeat_interval: 1h
+  group_interval: 30s
+  group_wait: 30s
+
+receivers:
+  - name: webhook-echo
+    webhook_configs:
+      - url: http://echo:8080/
+        send_resolved: true
